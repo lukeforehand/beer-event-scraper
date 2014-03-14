@@ -7,9 +7,9 @@ import org.jsoup.Jsoup;
 
 import scala.collection.JavaConversions._;
 
-object BJCPEventCleaner extends SiteCleaner {
+object BJCPEventCleaner {
 
-	def cleanEvent(html: String, numResults: Int): Array[String] = {
+	def cleanEvent(html: String, regions: Array[String]): Array[BeerEvent] = {
 		
 		var rawEvents = new ArrayList[String];
 
@@ -25,20 +25,55 @@ object BJCPEventCleaner extends SiteCleaner {
 			}
 		}
 
-		var events = new ArrayList[String];
+		var events = new ArrayList[BeerEvent];
 
 		var counter = 0;
-		while (counter < rawEvents.size() && counter < (numResults * 2)) {
-			// concat rows by two
-			var event = "";
-			event = event.concat(rawEvents.get(counter).trim()).concat("\t");
+		while (counter < rawEvents.size()) {
+			// two rows per event
+			var rawEvent = "";
+			rawEvent = rawEvent.concat(rawEvents.get(counter).trim()).concat("\t");
 			counter += 1;
-			event = event.concat(rawEvents.get(counter).trim());
+			rawEvent = rawEvent.concat(rawEvents.get(counter).trim());
 			counter += 1;
-			events.add(event);
+			rawEvent = rawEvent.replaceAll(160.asInstanceOf[Char].toString(), " ");
+			var rawEventSplits = rawEvent.split("\t");
+			var date = rawEventSplits(0);
+			var name = rawEventSplits(1);
+			var location = rawEventSplits(2);
+			var contactPerson = "";
+			var contactPhone = "";
+			var entryFee = "";
+			var entryDeadline = "";
+			for (rawField <- rawEventSplits) {
+				if (rawField.contains("Entry Fee:")) {
+					entryFee = rawField.replaceAll("Entry Fee:", "").trim();
+				} else if (rawField.contains("Entry Deadline:")) {
+					entryDeadline = rawField.replaceAll("Entry Deadline:", "").trim();
+				} else if (rawField.contains("Contact:")) {
+					contactPerson = rawField.replaceAll("Contact:", "").trim();
+				} else if (rawField.contains("Phone:")) {
+					contactPhone = rawField.replaceAll("Phone:", "").trim();
+				}
+			}
+			
+			// filter to regions
+			if (regions != null && location.contains(",")) {
+				var currentRegion = location.split(",")(1).trim();
+				for (region <- regions) {
+					if (currentRegion.equals(region)) {
+						events.add(new BeerEvent(date, name, location, contactPerson, contactPhone, entryFee, entryDeadline));
+					}
+				}
+			} else {
+				events.add(new BeerEvent(date, name, location, contactPerson, contactPhone, entryFee, entryDeadline));
+			}
+
 		}
 
-		return events.toArray(new Array[String](events.size()));
+		// sort by date
+		events.sortBy(_.date);
+
+		return events.toArray(new Array[BeerEvent](events.size()));
 
 	}
 
