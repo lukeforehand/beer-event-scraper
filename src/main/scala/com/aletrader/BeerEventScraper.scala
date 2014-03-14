@@ -27,7 +27,7 @@ object BeerEventScraper {
 	}
 
 	def clean(url: String, format: String): Array[String] = format match {
-		case "bjcp" => BJCPSiteCleaner.clean(client.target(url).request(MediaType.TEXT_PLAIN).get().readEntity(classOf[String]));
+		case "bjcp" => BJCPEventCleaner.cleanEvent(client.target(url).request(MediaType.TEXT_PLAIN).get().readEntity(classOf[String]));
 	}
 
 }
