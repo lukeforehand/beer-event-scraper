@@ -13,21 +13,23 @@ object BeerEventScraper {
 
 	def main(args: Array[String]) {
 
+		var numResultsPerSite = 5;
+
 		var sites = ResourceBundle.getBundle("sites");
 		var keys = sites.getKeys();
 
 		while (keys.hasMoreElements()) {
 			var url = keys.nextElement();
 			var format = sites.getString(url);
-			var cleanedEvents = clean(url, format);
-			println(cleanedEvents);
-
+			var html = client.target(url).request(MediaType.TEXT_PLAIN).get().readEntity(classOf[String]);
+			var cleanedEvents = clean(html, format, numResultsPerSite);
+			println(cleanedEvents.deep.mkString("\n"));
 		}
 
 	}
 
-	def clean(url: String, format: String): Array[String] = format match {
-		case "bjcp" => BJCPEventCleaner.cleanEvent(client.target(url).request(MediaType.TEXT_PLAIN).get().readEntity(classOf[String]));
+	def clean(html: String, format: String, numResults: Int): Array[String] = format match {
+		case "bjcp" => BJCPEventCleaner.cleanEvent(html, numResults);
 	}
 
 }
