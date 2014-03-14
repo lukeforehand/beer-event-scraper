@@ -1,16 +1,13 @@
 
 package com.aletrader;
 
+import org.apache.commons.io.IOUtils;
+import java.net.URL;
+import java.io.ByteArrayInputStream;
 import java.util.ResourceBundle;
-import org.glassfish.jersey.client.ClientConfig;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.MediaType;
 
 object BeerEventScraper {
 	
-	val config = new ClientConfig();
-	val client = ClientBuilder.newClient(config);
-
 	def main(args: Array[String]) {
 
 		var numResultsPerSite = 5;
@@ -21,7 +18,7 @@ object BeerEventScraper {
 		while (keys.hasMoreElements()) {
 			var url = keys.nextElement();
 			var format = sites.getString(url);
-			var html = client.target(url).request(MediaType.TEXT_PLAIN).get().readEntity(classOf[String]);
+			var html = new String(IOUtils.toByteArray(new URL(url).openStream()), "UTF-8");
 			var cleanedEvents = clean(html, format, numResultsPerSite);
 			println(cleanedEvents.deep.mkString("\n"));
 		}

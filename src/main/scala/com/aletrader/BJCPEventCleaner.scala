@@ -14,7 +14,7 @@ object BJCPEventCleaner extends SiteCleaner {
 		var rawEvents = new ArrayList[String];
 
 		// convert breaks to separate before parsing
-		for (eventElement <- Jsoup.parseBodyFragment(html.replaceAll("<br>", "</p><p>"), "UTF-8").getElementsByTag("tr")) {
+		for (eventElement <- Jsoup.parseBodyFragment(html.replaceAll("<br>", "</p><p>")).getElementsByTag("tr")) {
 			var event = "";
 			for (eventDetail <- eventElement.getElementsByTag("p")) {
 				event = event.concat(eventDetail.text() + "\t");
