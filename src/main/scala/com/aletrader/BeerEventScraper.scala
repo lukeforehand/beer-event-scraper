@@ -31,6 +31,8 @@ object BeerEventScraper {
 			beerEvents.addAll(scrape(html, format));
 		}
 
+		//TODO: de-duplicate events from multiple sites
+
 		var dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		var currentDate = dateFormat.format(new Date());
 
