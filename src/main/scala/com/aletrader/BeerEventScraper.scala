@@ -4,7 +4,13 @@ package com.aletrader;
 import org.apache.commons.io.IOUtils;
 import java.net.URL;
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import scala.collection.JavaConversions._;
 
 object BeerEventScraper {
 	
@@ -16,22 +22,44 @@ object BeerEventScraper {
 		var sites = ResourceBundle.getBundle("sites");
 		var keys = sites.getKeys();
 
+		var beerEvents = new ArrayList[BeerEvent];
+
 		while (keys.hasMoreElements()) {
 			var url = keys.nextElement();
 			var format = sites.getString(url);
 			var html = new String(IOUtils.toByteArray(new URL(url).openStream()), "UTF-8");
-			var beerEvents = clean(html, format, regions, numResults);
-			println(generateReport(beerEvents));
+			beerEvents.addAll(scrape(html, format));
 		}
 
+		var dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		var currentDate = dateFormat.format(new Date());
+
+		// filter by regions and entry deadline
+		if (regions != null) {
+			for (beerEvent <- new ArrayList(beerEvents)) {
+				if (beerEvent.location.contains(",")) {
+					var region = beerEvent.location.split(",")(1).trim();
+					if (!regions.contains(region) || (!beerEvent.entryDeadline.equals("") && currentDate.compareTo(beerEvent.entryDeadline) >= 0)) {
+						beerEvents.remove(beerEvent);
+					}
+				}
+			}			
+		}
+
+		// sort by date
+		beerEvents.sortBy(_.date);
+
+		// trim to numResults
+		println(generateReport(beerEvents.subList(0, if (numResults > beerEvents.size()) beerEvents.size() else numResults)));
+
 	}
 
-	def clean(html: String, format: String, regions: Array[String], numResults: Int): Array[BeerEvent] = format match {
-		case "bjcp" => BJCPEventCleaner.cleanEvent(html, regions, numResults);
+	def scrape(html: String, format: String): ArrayList[BeerEvent] = format match {
+		case "bjcp" => BJCPEventCleaner.scrapeEvents(html);
 	}
 
-	def generateReport(beerEvents: Array[BeerEvent]): String = {
-		return "date\tname\tlocation\tcontact\tphone\tfee\tdeadline\n".concat(beerEvents.deep.mkString("\n"));
+	def generateReport(beerEvents: List[BeerEvent]): String = {
+		return "date\tname\tlocation\tcontact\tphone\tfee\tdeadline\n".concat(beerEvents.toArray().deep.mkString("\n"));
 	}
 
 }

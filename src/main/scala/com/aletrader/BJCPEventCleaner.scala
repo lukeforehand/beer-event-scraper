@@ -11,7 +11,7 @@ import scala.collection.JavaConversions._;
 
 object BJCPEventCleaner {
 
-	def cleanEvent(html: String, regions: Array[String], numResults: Int): Array[BeerEvent] = {
+	def scrapeEvents(html: String): ArrayList[BeerEvent] = {
 		
 		var rawEvents = new ArrayList[String];
 
@@ -31,7 +31,6 @@ object BJCPEventCleaner {
 
 		var bjcpDateFormat = new SimpleDateFormat("MM/dd/yyyy");
 		var dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		var currentDate = dateFormat.format(new Date());
 
 		var counter = 0;
 		while (counter < rawEvents.size()) {
@@ -61,27 +60,10 @@ object BJCPEventCleaner {
 					contactPhone = rawField.replaceAll("Phone:", "").trim();
 				}
 			}
-
-			// filter to regions
-			if (regions != null && location.contains(",")) {
-				var currentRegion = location.split(",")(1).trim();
-				for (region <- regions) {
-					if (currentRegion.equals(region) && (entryDeadline.equals("") || currentDate.compareTo(entryDeadline) < 0)) {
-						events.add(new BeerEvent(date, name, location, contactPerson, contactPhone, entryFee, entryDeadline));
-					}
-				}
-			} else {
-				events.add(new BeerEvent(date, name, location, contactPerson, contactPhone, entryFee, entryDeadline));
-			}
-
+			events.add(new BeerEvent(date, name, location, contactPerson, contactPhone, entryFee, entryDeadline));
 		}
 
-		// sort by date
-		events.sortBy(_.date);
-		// trim to numResults
-		var trimmedEvents = events.subList(0, if (numResults > events.size()) events.size() else numResults);
-
-		return trimmedEvents.toArray(new Array[BeerEvent](trimmedEvents.size()));
+		return events;
 
 	}
 
