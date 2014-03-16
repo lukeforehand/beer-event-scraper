@@ -6,6 +6,8 @@ import java.net.URL;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.ResourceBundle;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -48,8 +50,17 @@ object BeerEventScraper {
 			}			
 		}
 
-		// sort by date
-		beerEvents.sortBy(_.date);
+		// sort by entry deadline
+		Collections.sort(beerEvents, new Comparator[BeerEvent]() {
+			def compare(event1: BeerEvent, event2:BeerEvent): Int = {
+				var deadline1 = event1.entryDeadline;
+				var date1 = event1.date;
+				var deadline2 = event2.entryDeadline;
+				var date2 = event2.date;
+				if (deadline1 == "" || deadline2 == "") return date1.compareTo(date2);
+				return deadline1.compareTo(deadline2);
+			}
+		});
 
 		// trim to numResults
 		println(generateReport(beerEvents.subList(0, if (numResults > beerEvents.size()) beerEvents.size() else numResults)));
@@ -61,7 +72,10 @@ object BeerEventScraper {
 	}
 
 	def generateReport(beerEvents: List[BeerEvent]): String = {
-		return "date\tname\tlocation\tcontact\tphone\tfee\tdeadline\n".concat(beerEvents.toArray().deep.mkString("\n"));
+		return "<html><table border=1>"
+			.concat("\n")
+			.concat("<tr><th>deadline<th>event date<th>name<th>location<th>contact<th>phone<th>fee\n<tr><td>")
+			.concat(beerEvents.toArray().deep.mkString("\n<tr><td>").replaceAll("\t", "<td>"));
 	}
 
 }

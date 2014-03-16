@@ -11,13 +11,13 @@ class BeerEvent(
 	
 	override def toString(): String = {
 		return ""
+			.concat(entryDeadline).concat("\t")
 			.concat(date).concat("\t")
 			.concat(name).concat("\t")
 			.concat(location).concat("\t")
 			.concat(contactPerson).concat("\t")
 			.concat(contactPhone).concat("\t")
-			.concat(entryFee).concat("\t")
-			.concat(entryDeadline);
+			.concat(entryFee);
 	}
 	
 }
