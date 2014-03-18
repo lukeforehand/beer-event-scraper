@@ -28,7 +28,7 @@ class BeerEventService {
 
 	@GET
 	@Path("/beer_events")
-	@Produces(Array(MediaType.TEXT_PLAIN))
+	@Produces(Array(MediaType.TEXT_HTML))
 	def beerEvents(@QueryParam("results") results: Int): String = {
 		return scraper.generateReport(scraper.getEvents(results));
 	}
