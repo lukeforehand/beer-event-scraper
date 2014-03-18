@@ -17,9 +17,13 @@ import scala.collection.JavaConversions._;
 object BeerEventScraper {
 	
 	def main(args: Array[String]) {
+		var numResults = 10;
+		println(generateReport(getEvents(numResults)));
+	}
+
+	def getEvents(numResults: Int): List[BeerEvent] = {
 
 		var regions = Array("IA", "KY", "WI", "MI", "IL", "MN", "IN", "MO", "KS", "NE", "OH");
-		var numResults = 10;
 
 		var sites = ResourceBundle.getBundle("sites");
 		var keys = sites.getKeys();
@@ -63,7 +67,7 @@ object BeerEventScraper {
 		});
 
 		// trim to numResults
-		println(generateReport(beerEvents.subList(0, if (numResults > beerEvents.size()) beerEvents.size() else numResults)));
+		return beerEvents.subList(0, if (numResults > beerEvents.size()) beerEvents.size() else numResults);
 
 	}
 
